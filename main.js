@@ -5,7 +5,7 @@ const config = {
   physics: {
     default: 'arcade',
     arcade: {
-      gravity: { y: 500 },  // gravedad hacia abajo
+      gravity: { y: 500 },
       debug: false
     }
   },
@@ -18,7 +18,6 @@ const config = {
 
 let player;
 let platforms;
-let cursors;
 
 const game = new Phaser.Game(config);
 
@@ -76,16 +75,19 @@ function create() {
   // Colisión jugador - plataformas
   this.physics.add.collider(player, platforms);
 
-  // Control de teclado
-  cursors = this.input.keyboard.createCursorKeys();
+  // Control de teclado con W,A,S,D
+  this.wKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.W);
+  this.aKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.A);
+  this.sKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.S);
+  this.dKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.D);
 }
 
 function update() {
-  if (cursors.left.isDown) {
+  if (this.aKey.isDown) {
     player.setVelocityX(-160);
     player.anims.play('left', true);
   }
-  else if (cursors.right.isDown) {
+  else if (this.dKey.isDown) {
     player.setVelocityX(160);
     player.anims.play('right', true);
   }
@@ -94,7 +96,7 @@ function update() {
     player.anims.play('turn');
   }
 
-  if (cursors.up.isDown && player.body.touching.down) {
+  if (this.wKey.isDown && player.body.touching.down) {
     player.setVelocityY(-330);
   }
 }
