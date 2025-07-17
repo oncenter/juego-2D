@@ -3,93 +3,56 @@ const config = {
   width: 600,
   height: 600,
   backgroundColor: '#1d1d1d',
-  scene: {
-    preload: preload,
-    create: create,
-    update: update
-  }
+  scene: { preload, create, update }
 };
 
 const game = new Phaser.Game(config);
 
-let snake;
-let food;
-let direction = 'RIGHT';
-let nextDirection = 'RIGHT';
-let lastMoveTime = 0;
-let moveInterval = 150;
-let gridSize = 20;
-let score = 0;
+let snake, food, direction = 'RIGHT', nextDirection = 'RIGHT';
+let lastTime = 0, interval = 150, size = 20, score = 0;
 let scoreText;
 
 function preload() {}
 
 function create() {
-  snake = [];
-  snake.push(this.add.rectangle(100, 100, gridSize, gridSize, 0x00ff00).setOrigin(0));
-
+  snake = [this.add.rectangle(100, 100, size, size, 0x00ff00).setOrigin(0)];
   placeFood.call(this);
-
-  // Teclado
-  this.input.keyboard.on('keydown', event => {
-    switch (event.key.toUpperCase()) {
-      case 'W':
-        if (direction !== 'DOWN') nextDirection = 'UP';
-        break;
-      case 'S':
-        if (direction !== 'UP') nextDirection = 'DOWN';
-        break;
-      case 'A':
-        if (direction !== 'RIGHT') nextDirection = 'LEFT';
-        break;
-      case 'D':
-        if (direction !== 'LEFT') nextDirection = 'RIGHT';
-        break;
-    }
+  this.input.keyboard.on('keydown', e => {
+    const up = e.key.toUpperCase();
+    if (up === 'W' && direction !== 'DOWN') nextDirection = 'UP';
+    if (up === 'S' && direction !== 'UP') nextDirection = 'DOWN';
+    if (up === 'A' && direction !== 'RIGHT') nextDirection = 'LEFT';
+    if (up === 'D' && direction !== 'LEFT') nextDirection = 'RIGHT';
   });
-
-  scoreText = this.add.text(10, 10, 'Puntaje: 0', { font: '20px Arial', fill: '#ffffff' });
+  scoreText = this.add.text(10, 10, 'Puntaje: 0', { font: '20px Arial', fill: '#fff' });
 }
 
 function update(time) {
-  if (time >= lastMoveTime + moveInterval) {
-    lastMoveTime = time;
-    moveSnake.call(this);
+  if (time >= lastTime + interval) {
+    lastTime = time;
+    move.call(this);
   }
 }
 
-function moveSnake() {
+function move() {
   direction = nextDirection;
-
   const head = snake[0];
-  let newX = head.x;
-  let newY = head.y;
+  let x = head.x, y = head.y;
 
-  if (direction === 'LEFT') newX -= gridSize;
-  else if (direction === 'RIGHT') newX += gridSize;
-  else if (direction === 'UP') newY -= gridSize;
-  else if (direction === 'DOWN') newY += gridSize;
+  if (direction === 'LEFT') x -= size;
+  if (direction === 'RIGHT') x += size;
+  if (direction === 'UP') y -= size;
+  if (direction === 'DOWN') y += size;
 
-  // Colisión con paredes
-  if (newX < 0 || newX >= config.width || newY < 0 || newY >= config.height) {
-    gameOver.call(this);
+  if (x < 0 || x >= config.width || y < 0 || y >= config.height || snake.some(s => s.x === x && s.y === y)) {
+    this.scene.restart();
     return;
   }
 
-  // Colisión con sí mismo
-  for (let i = 0; i < snake.length; i++) {
-    if (snake[i].x === newX && snake[i].y === newY) {
-      gameOver.call(this);
-      return;
-    }
-  }
+  const h = this.add.rectangle(x, y, size, size, 0x00ff00).setOrigin(0);
+  snake.unshift(h);
 
-  // Mover la serpiente
-  const newHead = this.add.rectangle(newX, newY, gridSize, gridSize, 0x00ff00).setOrigin(0);
-  snake.unshift(newHead);
-
-  // Comió la comida
-  if (newX === food.x && newY === food.y) {
+  if (food.x === x && food.y === y) {
     food.destroy();
     placeFood.call(this);
     score += 10;
@@ -101,6 +64,7 @@ function moveSnake() {
 }
 
 function placeFood() {
-  const foodX = Phaser.Math.Between(0, (config.width / gridSize) - 1) * gridSize;
-  const foodY = Phaser.Math.Between(0, (config.height / gridSize) - 1) * gridSize;
-  food = this.add.rec
+  const fx = Phaser.Math.Between(0, config.width / size - 1) * size;
+  const fy = Phaser.Math.Between(0, config.height / size - 1) * size;
+  food = this.add.rectangle(fx, fy, size, size, 0xff0000).setOrigin(0);
+}
